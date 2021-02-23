@@ -4,6 +4,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Heroe, Publisher } from '../../interfaces/heroes.interface';
 import { HeroesService } from '../../services/heroes.service';
 import { switchMap } from "rxjs/operators";
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmarComponent } from '../../components/confirmar/confirmar.component';
 
 @Component({
   selector: 'app-agregar',
@@ -41,6 +43,7 @@ export class AgregarComponent implements OnInit {
     private heroesService:HeroesService,
     private activatedRoute:ActivatedRoute,
     private snackBar:MatSnackBar,
+    private dialog: MatDialog,
     private router:Router) { }
 
   ngOnInit(): void {
@@ -84,10 +87,22 @@ export class AgregarComponent implements OnInit {
   }
 
   borrarHeroe(){
-    this.heroesService.borrarHeroe(this.heroe.id!)
-      .subscribe( heroe => {
-          this.router.navigate(['/heroes']);
-      });    
+
+    const dialog = this.dialog.open(ConfirmarComponent, {
+      width:'300px',
+      data: this.heroe //envio el data
+    })
+
+    dialog.afterClosed().subscribe(
+      (result) => {
+        if (result) {
+          this.heroesService.borrarHeroe(this.heroe.id!)
+          .subscribe( heroe => {
+              this.router.navigate(['/heroes']);
+          });   
+        }        
+      }
+    )     
   }
 
   mostrarSnakbar(mensaje:string){
