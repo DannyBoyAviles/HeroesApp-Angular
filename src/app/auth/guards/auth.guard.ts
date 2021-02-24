@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, CanLoad, Route, UrlSegment, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { CanActivate, CanLoad, Route, UrlSegment, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from '@angular/router';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 
 @Injectable({
@@ -8,32 +9,52 @@ import { AuthService } from '../services/auth.service';
 })
 export class AuthGuard implements  CanLoad, CanActivate {
 
-  constructor(private authService:AuthService){}
+  constructor(private authService:AuthService,
+              private router:Router){}
 
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
     
-      if (this.authService.auth.id) {
-        return true
-      }      
-      console.log('Bolqueado por el AuthGuard -  canActivate');
+      return this.authService.verificaAutenticacion()
+      .pipe(
+        tap( estaAutenticado =>{
+            if (!estaAutenticado) {
+              this.router.navigate(['./auth/login'])
+            }
+        })
+      );
+
+      // if (this.authService.auth.id) {
+      //   return true
+      // }      
+      // console.log('Bolqueado por el AuthGuard -  canActivate');
       
-      return false;
+      // return false;
   }
   canLoad(
     route: Route,
     segments: UrlSegment[]): Observable<boolean> | Promise<boolean> | boolean {
+
+      return this.authService.verificaAutenticacion()
+            .pipe(
+              tap( estaAutenticado =>{
+                  if (!estaAutenticado) {
+                    this.router.navigate(['./auth/login'])
+                  }
+              })
+            );
       
       // console.log('canLoad', false);
       // console.log(route);
       // console.log(segments);
-    if (this.authService.auth.id) {
-      return true
-    }      
-    console.log('Bolqueado por el AuthGuard - canLoad');
+
+    // if (this.authService.auth.id) {
+    //   return true
+    // }      
+    // console.log('Bolqueado por el AuthGuard - canLoad');
     
-    return false;
+    // return false;
 
   }
 }
